@@ -1,2 +1,14 @@
 Django>=5.2,<6.0
 python-decouple
+Pillow
+djangorestframework
+djangorestframework-simplejwt
+
+
+# third party packages
+markdown
+django-filter
+drf-yasg[validation]
+
+
+django-mail-templated
