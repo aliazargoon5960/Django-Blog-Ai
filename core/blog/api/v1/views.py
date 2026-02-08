@@ -11,7 +11,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 
 class PostModelViewSet(ModelViewSet):
-    queryset = Post.objects.select_related("author__user", "category").prefetch_related("tags")
+    queryset = Post.objects.select_related("author__user", "category").prefetch_related("tags", "comments__author__user")
     serializer_class = PostSerializer
     pagination_class = DefaultPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

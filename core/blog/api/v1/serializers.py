@@ -2,6 +2,8 @@ from rest_framework import serializers
 from ...models import Post , Category , Tag
 from accounts.models import Profile
 from django.urls import reverse
+from comments.api.v1.serializers import CommentSerializer
+
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,9 +20,10 @@ class CategorySerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     snippet = serializers.ReadOnlyField(source='get_snippet')
     absolute_url = serializers.SerializerMethodField(method_name="get_abs_url")
+    comments = serializers.SerializerMethodField(method_name="get_comments")
     class Meta:
         model = Post
-        fields = ["id", "title", "author", "snippet" ,"description", "category", "tags", "image", "view_count", "absolute_url","published_date"]
+        fields = ["id", "title", "author", "snippet" ,"description", "category", "tags", "image", "view_count","absolute_url", "comments", "published_date"]
         read_only_fields = ["author", "view_count"]
 
     
@@ -39,11 +42,18 @@ class PostSerializer(serializers.ModelSerializer):
         else:
             rep.pop('description', None)
             rep.pop('image', None)
+            rep.pop('comments', None)
 
 
         rep['category'] = CategorySerializer(instance.category).data
         rep['tags'] = TagSerializer(instance.tags.all(), many=True).data
         return rep
+    
+    def get_comments(self, obj):
+        request = self.context.get("request")
+        queryset = obj.comments.filter(is_visible=True, parent=None)
+        serializer = CommentSerializer(queryset, many=True, context={'request': request})
+        return serializer.data
 
     def create(self, validated_data):
         validated_data['author'] = Profile.objects.get(user__id = self.context.get('request').user.id)
